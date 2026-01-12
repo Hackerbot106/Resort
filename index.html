@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wild-West Adventure Lodge</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Inter:wght@400;700&family=Playfair+Display:wght@500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/hero.css">
+    <link rel="stylesheet" href="css/mobile.css">
+</head>
+
+<body class="day-mode">
+    <!-- Module 12: Loading Animations -->
+    <div id="loading-screen">
+        <div id="loader-content"></div>
+    </div>
+
+    <div id="app">
+        <!-- Module 4: Custom Cursor -->
+        <div id="cursor-container"></div>
+
+        <!-- Module 5: Dust Particles -->
+        <canvas id="dust-canvas"></canvas>
+
+        <!-- Module 6: Hero Section -->
+        <section id="hero-section">
+            <div class="parallax-layer" id="layer-08-lighting"></div>
+            <div class="parallax-layer" id="layer-07-sky"></div>
+            <!-- Mountains 4 (Farthest) -->
+            <div class="parallax-layer" id="layer-06-mountains-4"></div>
+            <!-- Mountains 3 -->
+            <div class="parallax-layer" id="layer-06-mountains-3"></div>
+            <!-- Mountains 2 -->
+            <div class="parallax-layer" id="layer-06-mountains-2"></div>
+            <!-- Mountains 1 (Closest) -->
+            <div class="parallax-layer" id="layer-06-mountains-1"></div>
+
+            <div class="parallax-layer" id="layer-05-trees"></div>
+            <div class="parallax-layer" id="layer-04-lodge">
+                <div class="window-glow"></div>
+                <div class="sign-rope">
+                    <div class="wooden-sign">LODGE</div>
+                </div>
+            </div>
+
+            <!-- Cowboy Silhouette (Module 7) -->
+            <div class="parallax-layer" id="layer-03-cowboy"></div>
+
+            <div class="parallax-layer" id="layer-02-foreground"></div>
+
+            <div class="parallax-layer" id="layer-01-menu">
+                <div id="floating-menu">
+                    <div class="book-cover">
+                        <span>MENU</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="parallax-layer" id="layer-00-ui">
+                <div id="hero-content">
+                    <h1>The Frontier Awaits</h1>
+                    <h2>Experience the wild untamed</h2>
+                    <button class="cta-button">Book Your Stay</button>
+                </div>
+
+                <!-- Night Mode Toggle (Module 9) -->
+                <div id="night-mode-toggle" title="Toggle Night Mode">
+                    <div class="campfire-icon">🔥</div>
+                </div>
+
+                <!-- Audio Toggle (Module 3) -->
+                <div id="audio-toggle" title="Toggle Sound">
+                    <div class="audio-icon">🔊</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scroll Story Spacer -->
+        <div style="height: 200vh;"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/audio.js"></script>
+    <script src="js/visuals.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>

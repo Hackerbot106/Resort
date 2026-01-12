@@ -1,0 +1,48 @@
+/* Module 18: Mobile Adaptation */
+@media (max-width: 768px) {
+    /* 18.1 Rules */
+
+    /* Remove cowboy silhouette */
+    #layer-03-cowboy {
+        display: none !important;
+    }
+
+    /* Reduce dust count (Handled in JS logic but good to note) */
+
+    /* Simplify Parallax */
+    .parallax-layer {
+        transform: translateZ(0);
+        /* Flatten */
+    }
+
+    /* Menu Opens Full Screen */
+    #floating-menu.open {
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        border: none;
+    }
+
+    /* Adjust Fonts */
+    h1 {
+        font-size: 2.5rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    /* Night mode toggle position fix */
+    #night-mode-toggle {
+        bottom: 20px;
+        left: 20px;
+    }
+
+    #audio-toggle {
+        bottom: 20px;
+        left: 70px;
+    }
+}
