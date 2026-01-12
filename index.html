@@ -1,98 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wild-West Adventure Lodge</title>
+    <title>Cowboys Lodge & Grille</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Inter:wght@400;700&family=Playfair+Display:wght@500;600&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Playfair+Display:wght@400;600&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <!-- CSS -->
+    <!-- Main CSS (Will add later) -->
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/hero.css">
-    <link rel="stylesheet" href="css/mobile.css">
+
 </head>
 
-<body class="day-mode">
-    <!-- Module 12: Loading Animations -->
-    <div id="loading-screen">
-        <div id="loader-content"></div>
+<body>
+
+    <!-- ========================================================= -->
+    <!-- FLOATING MENU BOOK (ALWAYS VISIBLE EXCEPT WHEN OPENED)   -->
+    <!-- ========================================================= -->
+    <div id="floatingMenu" class="menu-closed">
+        <div class="menu-book">
+            <div class="menu-cover">
+                <span class="menu-title">MENU</span>
+            </div>
+        </div>
     </div>
 
-    <div id="app">
-        <!-- Module 4: Custom Cursor -->
-        <div id="cursor-container"></div>
+    <!-- Dim overlay for when menu opens -->
+    <div id="menuDimLayer"></div>
 
-        <!-- Module 5: Dust Particles -->
-        <canvas id="dust-canvas"></canvas>
-
-        <!-- Module 6: Hero Section -->
-        <section id="hero-section">
-            <div class="parallax-layer" id="layer-08-lighting"></div>
-            <div class="parallax-layer" id="layer-07-sky"></div>
-            <!-- Mountains 4 (Farthest) -->
-            <div class="parallax-layer" id="layer-06-mountains-4"></div>
-            <!-- Mountains 3 -->
-            <div class="parallax-layer" id="layer-06-mountains-3"></div>
-            <!-- Mountains 2 -->
-            <div class="parallax-layer" id="layer-06-mountains-2"></div>
-            <!-- Mountains 1 (Closest) -->
-            <div class="parallax-layer" id="layer-06-mountains-1"></div>
-
-            <div class="parallax-layer" id="layer-05-trees"></div>
-            <div class="parallax-layer" id="layer-04-lodge">
-                <div class="window-glow"></div>
-                <div class="sign-rope">
-                    <div class="wooden-sign">LODGE</div>
-                </div>
-            </div>
-
-            <!-- Cowboy Silhouette (Module 7) -->
-            <div class="parallax-layer" id="layer-03-cowboy"></div>
-
-            <div class="parallax-layer" id="layer-02-foreground"></div>
-
-            <div class="parallax-layer" id="layer-01-menu">
-                <div id="floating-menu">
-                    <div class="book-cover">
-                        <span>MENU</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="parallax-layer" id="layer-00-ui">
-                <div id="hero-content">
-                    <h1>The Frontier Awaits</h1>
-                    <h2>Experience the wild untamed</h2>
-                    <button class="cta-button">Book Your Stay</button>
-                </div>
-
-                <!-- Night Mode Toggle (Module 9) -->
-                <div id="night-mode-toggle" title="Toggle Night Mode">
-                    <div class="campfire-icon">🔥</div>
-                </div>
-
-                <!-- Audio Toggle (Module 3) -->
-                <div id="audio-toggle" title="Toggle Sound">
-                    <div class="audio-icon">🔊</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Scroll Story Spacer -->
-        <div style="height: 200vh;"></div>
+    <!-- ========================================================= -->
+    <!-- NIGHT MODE / DAY MODE TOGGLE                             -->
+    <!-- ========================================================= -->
+    <div id="nightToggleWrapper">
+        <div id="nightToggle" class="campfire-icon"></div>
     </div>
 
-    <!-- Scripts -->
-    <script src="js/audio.js"></script>
-    <script src="js/visuals.js"></script>
+    <!-- Matchstick animation container -->
+    <div id="matchstickAnimation"></div>
+
+    <!-- ========================================================= -->
+    <!-- HERO SECTION WITH PARALLAX LAYERS                        -->
+    <!-- ========================================================= -->
+    <header id="hero">
+
+        <!-- Sky Layer -->
+        <div class="layer sky" id="heroSky"></div>
+
+        <!-- Mountain Layers -->
+        <div class="layer mountains layer-1" id="mount1"></div>
+        <div class="layer mountains layer-2" id="mount2"></div>
+        <div class="layer mountains layer-3" id="mount3"></div>
+        <div class="layer mountains layer-4" id="mount4"></div>
+
+        <!-- Trees -->
+        <div class="layer trees" id="heroTrees"></div>
+
+        <!-- Lodge -->
+        <div class="layer lodge" id="heroLodge"></div>
+
+        <!-- Foreground -->
+        <div class="layer foreground rocks" id="heroRocks"></div>
+        <div class="layer foreground fence" id="heroFence"></div>
+        <div class="layer foreground wagon" id="heroWagon"></div>
+
+        <!-- Cowboy Silhouette -->
+        <div id="cowboySilhouette"></div>
+
+        <!-- Hero Text Overlay -->
+        <div id="heroTextContainer">
+            <h1 class="hero-title">Cowboys Lodge & Grille</h1>
+            <h2 class="hero-subtitle">Stay • Eat • Explore</h2>
+            <div class="hero-cta">
+                <button class="cta-btn" id="ctaBook">Book Your Stay</button>
+                <button class="cta-btn" id="ctaMenu">View Menu</button>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div id="scrollIndicator"></div>
+
+    </header>
+
+
+    <!-- ========================================================= -->
+    <!-- SECTION 1 — ABOUT / EXPERIENCE                           -->
+    <!-- ========================================================= -->
+    <section id="experienceSection">
+        <div class="section-inner">
+            <h2 class="section-title">Experience The Wild West</h2>
+            <p class="section-text">
+                Discover the rugged beauty, rustic charm, and unforgettable character
+                of the authentic cowboy lifestyle surrounded by majestic mountains.
+            </p>
+        </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- SECTION 2 — THE GRILLE / FOOD MENU PREVIEW               -->
+    <!-- ========================================================= -->
+    <section id="grilleSection">
+        <div class="section-inner">
+            <h2 class="section-title">The Grille</h2>
+            <div class="food-showcase">
+                <div class="food-card" id="food1"></div>
+                <div class="food-card" id="food2"></div>
+                <div class="food-card" id="food3"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- SECTION 3 — ACTIVITIES                                   -->
+    <!-- ========================================================= -->
+    <section id="activitiesSection">
+        <h2 class="section-title">Adventure Awaits</h2>
+        <div class="activity-carousel">
+            <div class="activity-card">Horseback Riding</div>
+            <div class="activity-card">Mountain Trails</div>
+            <div class="activity-card">Sunset Views</div>
+            <div class="activity-card">Wildlife Watching</div>
+        </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- SECTION 4 — CABINS                                       -->
+    <!-- ========================================================= -->
+    <section id="cabinsSection">
+        <h2 class="section-title">Our Cabins</h2>
+        <div id="cabin3DContainer"></div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- SECTION 5 — MAP                                          -->
+    <!-- ========================================================= -->
+    <section id="mapSection">
+        <h2 class="section-title">Find Us</h2>
+        <div id="animatedMap"></div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- FOOTER                                                   -->
+    <!-- ========================================================= -->
+    <footer id="footer">
+        <div class="footer-inner">
+            <div class="footer-logo">Cowboys Lodge & Grille</div>
+            <div class="footer-links">
+                <a href="#">Contact</a>
+                <a href="#">Gallery</a>
+                <a href="#">Location</a>
+                <a href="#">Policies</a>
+            </div>
+            <div class="footer-copy">© 2026 Cowboys Lodge & Grille. All Rights Reserved.</div>
+        </div>
+    </footer>
+
+    <!-- ========================================================= -->
+    <!-- JAVASCRIPT FILES (TO BE WRITTEN LATER)                   -->
+    <!-- ========================================================= -->
     <script src="js/main.js"></script>
-</body>
 
+</body>
 </html>
