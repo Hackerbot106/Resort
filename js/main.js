@@ -1,156 +1,272 @@
-console.log("Main JS loaded");
+/* =========================================================
+   MAIN ENGINE — main.js
+   Ties together: parallax, hero animations, night mode,
+   floating menu, matchstick ignition, scroll triggers,
+   audio events, and responsive behaviors.
+   ========================================================= */
 
-const app = {
-    init: () => {
-        // Module 12: Loading Animations
-        app.handleLoading();
 
-        // Module 16: Behavioral Logic
-        const nightModeSaved = localStorage.getItem('nightMode');
-        if (nightModeSaved === 'true') {
-            document.body.classList.add('night-mode');
-        }
+/* ---------------------------------------------------------
+   ELEMENT REFERENCES
+   --------------------------------------------------------- */
 
-        // Initialize sub-modules
-        audioManager.init();
-        visualsManager.init();
+const body = document.body;
+const hero = document.getElementById("hero");
+const heroText = document.getElementById("heroTextContainer");
+const cowboy = document.getElementById("cowboySilhouette");
 
-        // Event Listeners
-        document.getElementById('night-mode-toggle').addEventListener('click', app.toggleNightMode);
-        document.getElementById('floating-menu').addEventListener('click', app.toggleMenu);
-        window.addEventListener('scroll', app.handleScroll);
+const nightToggle = document.getElementById("nightToggle");
+const matchstickAnim = document.getElementById("matchstickAnimation");
 
-        // Initial check
-        app.handleScroll();
-    },
+const floatingMenu = document.getElementById("floatingMenu");
+const menuDimLayer = document.getElementById("menuDimLayer");
 
-    handleLoading: () => {
-        const screen = document.getElementById('loading-screen');
-        const content = document.getElementById('loader-content');
+const scrollIndicator = document.getElementById("scrollIndicator");
 
-        // 12.1 Randomization Logic
-        const loaders = [
-            { text: "🔥 Warming up the campfire...", type: "campfire" },
-            { text: "🐎 Saddling the horses...", type: "horse" },
-            { text: "🪵 Hanging the sign...", type: "sign" },
-            { text: "💨 Clearing the smoke...", type: "smoke" }
-        ];
+const mountLayers = [
+    document.getElementById("mount1"),
+    document.getElementById("mount2"),
+    document.getElementById("mount3"),
+    document.getElementById("mount4")
+];
 
-        const selected = loaders[Math.floor(Math.random() * loaders.length)];
-        content.innerText = selected.text;
-        screen.classList.add(selected.type);
+const heroLayers = [
+    document.getElementById("heroSky"),
+    ...mountLayers,
+    document.getElementById("heroTrees"),
+    document.getElementById("heroLodge"),
+    document.getElementById("heroRocks"),
+    document.getElementById("heroFence"),
+    document.getElementById("heroWagon")
+];
 
-        // Simulate load time (1.5s - 2.5s)
-        setTimeout(() => {
-            screen.style.opacity = 0;
+
+/* ---------------------------------------------------------
+   SCROLL STATE TRACKING
+   --------------------------------------------------------- */
+
+let lastScrollY = 0;
+let silhouetteActive = false;
+let hasTextRevealed = false;
+
+
+/* =========================================================
+   PARALLAX ENGINE
+   ========================================================= */
+
+function updateParallax() {
+    const scrollY = window.scrollY;
+    const heroHeight = hero.offsetHeight;
+    const progress = Math.min(scrollY / heroHeight, 1);
+
+    heroLayers.forEach((layer, index) => {
+        const depth = (index + 1) * 10; 
+        const translateY = -(scrollY / depth);
+        layer.style.transform = `translate3d(0, ${translateY}px, 0)`;
+    });
+}
+
+window.addEventListener("scroll", updateParallax);
+
+
+/* =========================================================
+   HERO SCROLL TRIGGER — COWBOY SILHOUETTE
+   ========================================================= */
+
+function triggerCowboy() {
+    const scrollY = window.scrollY;
+
+    if (scrollY < lastScrollY && scrollY < hero.offsetHeight * 0.5) {
+        if (!silhouetteActive) {
+            silhouetteActive = true;
+            cowboy.classList.add("active");
+            triggerCowboyFootsteps();
+
             setTimeout(() => {
-                screen.style.display = 'none';
-                // Trigger entry animation
-                app.playEntryAnimation();
-            }, 500);
-        }, 2000);
-    },
-
-    playEntryAnimation: () => {
-        // Cowboy entry or initial camera pan could go here
-    },
-
-    toggleNightMode: () => {
-        // Module 9: Animation Sequence
-        const body = document.body;
-        body.classList.toggle('night-mode');
-        const isNight = body.classList.contains('night-mode');
-        localStorage.setItem('nightMode', isNight);
-
-        // Trigger SFX
-        audioManager.play('match_ignite');
-
-        // Module 3.3: Night Mode fire sounds
-        if (isNight) {
-            setTimeout(() => {
-                audioManager.play('fire_crackle');
-            }, 1000); // Delay for flame burst
-        } else {
-            audioManager.stop('fire_crackle');
+                cowboy.classList.remove("active");
+                silhouetteActive = false;
+            }, 1500);
         }
-    },
+    }
 
-    toggleMenu: () => {
-        // Module 8: Floating Menu System
-        const menu = document.getElementById('floating-menu');
-        menu.classList.toggle('open');
-        audioManager.play('page_flip');
+    lastScrollY = scrollY;
+}
 
-        if (menu.classList.contains('open')) {
-            console.log("Menu Opened");
-        }
-    },
+window.addEventListener("scroll", triggerCowboy);
 
-    handleScroll: () => {
-        // Module 7: Hero Scroll Story Mechanics
-        const scrollY = window.scrollY;
-        const windowHeight = window.innerHeight;
-        const scrollPct = Math.min(scrollY / windowHeight, 1.5);
 
-        // 6.2 Parallax Movement Values
-        const layers = {
-            'layer-02-foreground': { y: -40, x: -20 },
-            'layer-04-lodge': { y: -25 },
-            'layer-06-mountains-2': { y: -15 },
-            'layer-06-mountains-4': { y: -10 },
-            'layer-07-sky': { y: -5 }
-        };
+/* =========================================================
+   HERO TEXT FADE-IN
+   ========================================================= */
 
-        for (const [id, val] of Object.entries(layers)) {
-            const el = document.getElementById(id);
-            if (el) {
-                const y = scrollY * (val.y / 100);
-                const x = val.x ? scrollY * (val.x / 100) : 0;
-                el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-            }
-        }
+function revealHeroText() {
+    const scrollY = window.scrollY;
 
-        // Stage 2: 20-40% Scroll - Cowboy Silhouette
-        const cowboy = document.getElementById('layer-03-cowboy');
-        if (cowboy) {
-            if (scrollPct > 0.2 && scrollPct < 0.6) {
-                const progress = (scrollPct - 0.2) / 0.4;
-                const translateX = -100 + (progress * 150);
-                cowboy.style.transform = `translateX(${translateX}%)`;
+    if (!hasTextRevealed && scrollY > hero.offsetHeight * 0.25) {
+        heroText.classList.add("visible");
+        hasTextRevealed = true;
+    }
+}
 
-                if (Math.floor(progress * 20) % 5 === 0 && Math.floor(progress * 20) !== app.lastStepFrame) {
-                    audioManager.play('footsteps');
-                    app.lastStepFrame = Math.floor(progress * 20);
-                }
-            } else if (scrollPct <= 0.2) {
-                cowboy.style.transform = `translateX(-100%)`;
-            }
-        }
+window.addEventListener("scroll", revealHeroText);
 
-        // Stage 3: 40-60% Scroll - Lodge Sign Rope Swings
-        const sign = document.querySelector('.sign-rope');
-        if (scrollPct > 0.4 && sign) {
-            const swing = Math.sin(scrollY * 0.01) * 5;
-            sign.style.transform = `rotate(${swing}deg)`;
-            if (Math.random() > 0.99) audioManager.play('wood_creak');
-        }
 
-        // Stage 4: 60-100% Scroll - Text Reveal
-        const heroContent = document.getElementById('hero-content');
-        if (heroContent) {
-            if (scrollPct > 0.6) {
-                heroContent.style.opacity = 1;
-                heroContent.style.pointerEvents = 'auto';
-                heroContent.style.transform = `translate(-50%, -50%) scale(1)`;
-            } else {
-                heroContent.style.opacity = 0;
-                heroContent.style.pointerEvents = 'none';
-                heroContent.style.transform = `translate(-50%, -40%) scale(0.95)`;
-            }
-        }
-    },
+/* =========================================================
+   FLOATING MENU OPEN / CLOSE
+   ========================================================= */
 
-    lastStepFrame: -1
-};
+floatingMenu.addEventListener("click", () => {
+    if (floatingMenu.classList.contains("menu-open")) {
+        closeMenu();
+    } else {
+        openMenu();
+    }
+});
 
-window.addEventListener('DOMContentLoaded', app.init);
+function openMenu() {
+    floatingMenu.classList.add("menu-open");
+    menuDimLayer.style.display = "block";
+
+    menuDimLayer.onclick = closeMenu;
+
+    // Hide night mode toggle
+    nightToggle.style.display = "none";
+
+    // Sound effect
+    triggerPageFlipSound();
+}
+
+function closeMenu() {
+    floatingMenu.classList.remove("menu-open");
+    menuDimLayer.style.display = "none";
+
+    // Show night mode toggle
+    nightToggle.style.display = "block";
+}
+
+
+/* =========================================================
+   NIGHT MODE SYSTEM
+   ========================================================= */
+
+function enableNightMode() {
+    body.classList.add("night-mode");
+
+    // Audio transition
+    AudioEngine.enableNightAudio();
+
+    // Save state
+    localStorage.setItem("nightMode", "true");
+}
+
+function disableNightMode() {
+    body.classList.remove("night-mode");
+
+    // Audio transition
+    AudioEngine.disableNightAudio();
+
+    // Save state
+    localStorage.setItem("nightMode", "false");
+}
+
+
+/* =========================================================
+   MATCHSTICK IGNITION ANIMATION
+   ========================================================= */
+
+function playNightModeAnimation(callback) {
+    matchstickAnim.innerHTML = `
+        <div class="matchstick-effect"></div>
+    `;
+
+    triggerMatchIgnite();
+
+    matchstickAnim.classList.add("active");
+
+    setTimeout(() => {
+        matchstickAnim.classList.remove("active");
+        matchstickAnim.innerHTML = "";
+        callback();
+    }, 2300);
+}
+
+
+/* =========================================================
+   NIGHT MODE TOGGLE CLICK EVENT
+   ========================================================= */
+
+nightToggle.addEventListener("click", () => {
+    if (!body.classList.contains("night-mode")) {
+        playNightModeAnimation(enableNightMode);
+    } else {
+        disableNightMode();
+    }
+});
+
+
+/* =========================================================
+   PERSIST NIGHT MODE ACROSS PAGES / RELOADS
+   ========================================================= */
+
+window.addEventListener("DOMContentLoaded", () => {
+    const savedMode = localStorage.getItem("nightMode");
+
+    if (savedMode === "true") {
+        body.classList.add("night-mode");
+        AudioEngine.enableNightAudio();
+    } else {
+        body.classList.remove("night-mode");
+    }
+});
+
+
+/* =========================================================
+   SCROLL INDICATOR HIDE ON SCROLL
+   ========================================================= */
+
+window.addEventListener("scroll", () => {
+    if (window.scrollY > 50) {
+        scrollIndicator.style.opacity = "0";
+    } else {
+        scrollIndicator.style.opacity = "1";
+    }
+});
+
+
+/* =========================================================
+   CTA BUTTON LOGIC
+   ========================================================= */
+
+document.getElementById("ctaBook").addEventListener("click", () => {
+    window.location.href = "#cabinsSection";
+});
+
+document.getElementById("ctaMenu").addEventListener("click", () => {
+    openMenu();
+});
+
+
+/* =========================================================
+   REDUCED MOTION SUPPORT (ACCESSIBILITY)
+   ========================================================= */
+
+if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    heroLayers.forEach(layer => {
+        layer.style.transform = "none";
+    });
+
+    window.removeEventListener("scroll", updateParallax);
+    window.removeEventListener("scroll", triggerCowboy);
+}
+
+
+/* =========================================================
+   MOBILE OPTIMIZATION HOOKS
+   ========================================================= */
+
+if (/Mobi|Android/i.test(navigator.userAgent)) {
+    heroLayers.forEach(layer => {
+        layer.style.transform = "none";
+    });
+}
+
