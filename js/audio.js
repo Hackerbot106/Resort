@@ -1,113 +1,179 @@
-/**
- * Module 3: Global Sound System
- */
-const audioManager = {
-    sounds: {},
-    isMuted: true, // Default to muted for browser policy
+/* =========================================================
+   AUDIO SYSTEM — audio.js
+   Handles all sound effects, ambient loops, muting, 
+   night mode audio behavior, preloading, and triggers.
+   ========================================================= */
 
-    // 3.2 Sound Volumes config
+/* --------------------------
+   MASTER AUDIO CONTROLLER
+   -------------------------- */
+
+const AudioEngine = {
+    muted: false,
+    nightMode: false,
+
+    sounds: {
+        ambientWind: new Audio("assets/audio/ambient_wind.mp3"),
+        dustMove: new Audio("assets/audio/dust_move.mp3"),
+        footsteps: new Audio("assets/audio/footsteps.mp3"),
+        pageFlip: new Audio("assets/audio/page_flip.mp3"),
+        matchIgnite: new Audio("assets/audio/match_ignite.mp3"),
+        fireCrackle: new Audio("assets/audio/fire_crackle.mp3"),
+        woodCreak: new Audio("assets/audio/wood_creak.mp3"),
+    },
+
     volumes: {
-        'ambient_wind': 0.10,      // 7-10%
-        'dust_fx': 0.05,           // 5%
-        'footsteps': 0.04,         // 4%
-        'page_flip': 0.06,         // 6%
-        'match_ignite': 0.08,      // 8%
-        'fire_crackle': 0.06,      // 6%
-        'wood_creak': 0.05         // 5%
+        ambientWind: 0.10,
+        dustMove: 0.05,
+        footsteps: 0.04,
+        pageFlip: 0.06,
+        matchIgnite: 0.08,
+        fireCrackle: 0.06,
+        woodCreak: 0.05,
     },
 
-    init: () => {
-        console.log("Audio System Initializing...");
-
-        // Setup toggle listener
-        const toggleBtn = document.getElementById('audio-toggle');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', audioManager.toggleMute);
+    /* Preload all audio buffers */
+    preloadAll() {
+        for (let key in this.sounds) {
+            this.sounds[key].volume = this.volumes[key];
+            this.sounds[key].load();
         }
-
-        // Preload sounds (Mocking URLs for now)
-        // In a real app, these would be actual file paths
-        audioManager.loadSound('ambient_wind', 'assets/sounds/wind_loop.mp3', true);
-        audioManager.loadSound('dust_fx', 'assets/sounds/dust.mp3');
-        audioManager.loadSound('footsteps', 'assets/sounds/footsteps.mp3');
-        audioManager.loadSound('page_flip', 'assets/sounds/paper_rustle.mp3');
-        audioManager.loadSound('match_ignite', 'assets/sounds/match_strike.mp3');
-        audioManager.loadSound('fire_crackle', 'assets/sounds/fire_loop.mp3', true);
-        audioManager.loadSound('wood_creak', 'assets/sounds/wood_creak.mp3');
-
-        audioManager.updateIcon();
+        this.sounds.ambientWind.loop = true;
+        this.sounds.fireCrackle.loop = true;
     },
 
-    loadSound: (name, path, loop = false) => {
-        // Since we don't have actual files, we will simulate the Audio object
-        // In a real implementation: const audio = new Audio(path);
-        const audio = new Audio();
-        // We won't set src to avoid 404 errors in console for this demo unless files exist
-        // audio.src = path; 
+    /* Play a sound if not muted */
+    play(soundName) {
+        if (!this.muted) {
+            const sound = this.sounds[soundName];
 
-        audio.loop = loop;
-        audio.volume = audioManager.volumes[name] || 0.05;
-
-        audioManager.sounds[name] = audio;
-    },
-
-    play: (name) => {
-        if (audioManager.isMuted) return;
-
-        const sound = audioManager.sounds[name];
-        if (sound) {
-            // Reset if not looping to allow re-trigger
-            if (!sound.loop) {
-                sound.currentTime = 0;
-            }
-
-            // Simulation log
-            console.log(`🔊 [Audio] Playing: ${name} at vol ${sound.volume}`);
-
-            // sound.play().catch(e => console.warn("Audio play blocked", e));
-        } else {
-            console.warn(`Sound not found: ${name}`);
-        }
-    },
-
-    stop: (name) => {
-        const sound = audioManager.sounds[name];
-        if (sound) {
-            sound.pause();
+            if (!sound) return;
             sound.currentTime = 0;
+            sound.volume = this.volumes[soundName];
+            sound.play().catch(err => {});
         }
     },
 
-    toggleMute: () => {
-        audioManager.isMuted = !audioManager.isMuted;
+    /* Play a looped sound (ambient wind / fire crackle) */
+    loop(soundName) {
+        if (!this.muted) {
+            const sound = this.sounds[soundName];
+            if (!sound.loop) sound.loop = true;
+            sound.volume = this.volumes[soundName];
+            sound.play().catch(err => {});
+        }
+    },
 
-        // 3.3 Sound Rules: Silence all if muted
-        if (audioManager.isMuted) {
-            Object.values(audioManager.sounds).forEach(s => s.pause());
-        } else {
-            // Resume ambient loops if unmuted
-            audioManager.play('ambient_wind');
-            if (document.body.classList.contains('night-mode')) {
-                audioManager.play('fire_crackle');
+    /* Fade out a sound smoothly */
+    fadeOut(soundName, duration = 600) {
+        let sound = this.sounds[soundName];
+        let vol = sound.volume;
+        let step = vol / (duration / 50);
+
+        let fade = setInterval(() => {
+            vol -= step;
+            if (vol <= 0) {
+                clearInterval(fade);
+                sound.pause();
+                sound.volume = this.volumes[soundName];
+            } else {
+                sound.volume = vol;
             }
-        }
-
-        audioManager.updateIcon();
-        console.log(`Audio Muted: ${audioManager.isMuted}`);
+        }, 50);
     },
 
-    updateIcon: () => {
-        const btn = document.getElementById('audio-toggle');
-        if (btn) {
-            btn.innerHTML = audioManager.isMuted ? '<div class="audio-icon">🔇</div>' : '<div class="audio-icon">🔊</div>';
+    /* Global Mute Toggle */
+    toggleMute() {
+        this.muted = !this.muted;
+
+        if (this.muted) {
+            // Pause all sounds
+            for (let key in this.sounds) {
+                this.sounds[key].pause();
+            }
+        } else {
+            // Resume ambient sounds
+            this.loop("ambientWind");
+            if (this.nightMode) this.loop("fireCrackle");
         }
     },
 
-    // 3.3 Fade logic
-    fadeOut: (name, duration = 300) => {
-        const sound = audioManager.sounds[name];
-        if (sound && !sound.paused) {
-            // logic to fade volume down to 0 then pause
-        }
+    /* Enable Night Mode Audio */
+    enableNightAudio() {
+        this.nightMode = true;
+        this.fadeOut("ambientWind", 800);
+
+        setTimeout(() => {
+            this.loop("fireCrackle");
+        }, 500);
+    },
+
+    /* Disable Night Mode Audio */
+    disableNightAudio() {
+        this.nightMode = false;
+        this.fadeOut("fireCrackle", 700);
+
+        setTimeout(() => {
+            this.loop("ambientWind");
+        }, 400);
     }
 };
+
+
+/* =========================================================
+   EVENT-BASED TRIGGERS
+   ========================================================= */
+
+/* Play dust sound when cursor moves fast */
+let lastMouseTime = Date.now();
+document.addEventListener("mousemove", (e) => {
+    let now = Date.now();
+    let delta = now - lastMouseTime;
+    lastMouseTime = now;
+
+    if (delta < 25) {
+        AudioEngine.play("dustMove");
+    }
+});
+
+/* Cowboy footsteps during scroll-up hero animation */
+function triggerCowboyFootsteps() {
+    AudioEngine.play("footsteps");
+}
+
+/* Menu page flip sound */
+function triggerPageFlipSound() {
+    AudioEngine.play("pageFlip");
+}
+
+/* Wood creak for swinging sign */
+function triggerWoodCreak() {
+    AudioEngine.play("woodCreak");
+}
+
+/* Matchstick animation sound */
+function triggerMatchIgnite() {
+    AudioEngine.play("matchIgnite");
+}
+
+/* =========================================================
+   STARTUP INITIALIZATION
+   ========================================================= */
+
+window.addEventListener("DOMContentLoaded", () => {
+    AudioEngine.preloadAll();
+
+    // Start ambient wind immediately
+    AudioEngine.loop("ambientWind");
+});
+
+
+/* =========================================================
+   PUBLIC EXPOSED GLOBALS (to be used in main.js)
+   ========================================================= */
+
+window.AudioEngine = AudioEngine;
+window.triggerCowboyFootsteps = triggerCowboyFootsteps;
+window.triggerPageFlipSound = triggerPageFlipSound;
+window.triggerWoodCreak = triggerWoodCreak;
+window.triggerMatchIgnite = triggerMatchIgnite;
