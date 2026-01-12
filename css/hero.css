@@ -1,214 +1,284 @@
-/* Module 6: Hero Section Structure */
-#hero-section {
-    position: relative;
+/* =========================================================
+   GLOBAL ROOT VARIABLES (DAY + NIGHT MODE)
+   ========================================================= */
+
+:root {
+    --sky-day-top: #F9C38F;
+    --sky-day-mid: #E89553;
+    --sky-day-bottom: #D47538;
+
+    --sky-night-top: #081018;
+    --sky-night-mid: #101C28;
+    --sky-night-bottom: #1A2430;
+
+    --mount-1-day: #5A3C25;
+    --mount-2-day: #79573A;
+    --mount-3-day: #A28056;
+    --mount-4-day: #CBAE80;
+
+    --mount-1-night: #2B1B12;
+    --mount-2-night: #3B2A1C;
+    --mount-3-night: #4C3A27;
+    --mount-4-night: #5E4C34;
+
+    --dust-day: #C99A6A;
+    --dust-night: #C49B66;
+
+    --hero-text-main: #3A2A1F;
+    --hero-text-night: #EAE8E3;
+
+    --hero-transition-speed: 0.8s;
+}
+
+/* When night mode is active */
+body.night-mode {
+    --hero-text-main: #EAE8E3;
+}
+
+/* =========================================================
+   HERO SECTION BASE STYLES
+   ========================================================= */
+
+#hero {
+    width: 100%;
     height: 100vh;
-    width: 100%;
+    position: relative;
     overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    perspective: 1000px;
+    background: linear-gradient(
+        to bottom,
+        var(--sky-day-top),
+        var(--sky-day-mid),
+        var(--sky-day-bottom)
+    );
+    transition: background var(--hero-transition-speed) ease-in-out;
 }
 
-.parallax-layer {
+/* Night Mode Sky Transition */
+body.night-mode #hero {
+    background: linear-gradient(
+        to bottom,
+        var(--sky-night-top),
+        var(--sky-night-mid),
+        var(--sky-night-bottom)
+    );
+}
+
+/* =========================================================
+   PARALLAX LAYERS
+   ========================================================= */
+
+.layer {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    width: 120%;
+    height: 120%;
+    left: -10%;
+    top: -10%;
+    background-repeat: no-repeat;
     background-size: cover;
-    background-position: center bottom;
-    will-change: transform;
+    pointer-events: none;
+    transform-style: preserve-3d;
 }
 
-/* Layer placeholders using colors for now till we have images */
-#layer-07-sky {
+/* Sky Layer */
+#heroSky {
     z-index: 1;
 }
 
-#layer-06-mountains-4 {
-    background-image: url('../assets/images/hero_mountains_all.png');
-    background-repeat: no-repeat;
-    background-size: cover;
+/* Mountain Layers */
+#mount1,
+#mount2,
+#mount3,
+#mount4 {
     z-index: 2;
-    opacity: 0.8;
 }
 
-#layer-06-mountains-3 {
-    background-color: transparent;
+/* DAY COLORS for mountains */
+#mount1 { background-color: var(--mount-1-day); }
+#mount2 { background-color: var(--mount-2-day); }
+#mount3 { background-color: var(--mount-3-day); }
+#mount4 { background-color: var(--mount-4-day); }
+
+/* NIGHT COLORS override */
+body.night-mode #mount1 { background-color: var(--mount-1-night); }
+body.night-mode #mount2 { background-color: var(--mount-2-night); }
+body.night-mode #mount3 { background-color: var(--mount-3-night); }
+body.night-mode #mount4 { background-color: var(--mount-4-night); }
+
+/* Trees */
+#heroTrees {
     z-index: 3;
 }
 
-#layer-06-mountains-2 {
-    background-color: transparent;
+/* Lodge */
+#heroLodge {
     z-index: 4;
 }
 
-#layer-06-mountains-1 {
-    background-color: transparent;
+/* Foreground Rocks/Fence/Wagon */
+#heroRocks,
+#heroFence,
+#heroWagon {
     z-index: 5;
 }
 
-#layer-05-trees {
-    z-index: 6;
-}
+/* =========================================================
+   COWBOY SILHOUETTE (SCROLL ANIMATION TARGET)
+   ========================================================= */
 
-#layer-04-lodge {
-    z-index: 7;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Lodge container inner div for the image */
-#layer-04-lodge::after {
-    content: '';
+#cowboySilhouette {
     position: absolute;
-    bottom: 10%;
-    width: 600px;
-    height: 400px;
-    background-image: url('../assets/images/hero_lodge.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center bottom;
-}
-
-#layer-03-cowboy {
-    z-index: 8;
-    transform: translateX(-100%);
-    /* Initially hidden */
-    background-image: url('../assets/images/hero_cowboy.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center bottom;
+    bottom: 15%;
+    left: -20%;
     width: 300px;
     height: 300px;
-    bottom: 0px;
-}
-
-#layer-02-foreground {
-    z-index: 9;
-    background-image: url('../assets/images/hero_foreground.png');
-    background-size: cover;
-    background-position: center bottom;
-    background-repeat: no-repeat;
-}
-
-#layer-01-menu {
-    z-index: 10;
-    pointer-events: none;
-    /* Let clicks pass unless on menu */
-    perspective: 1000px;
-    /* Helper for 3D transforms */
-}
-
-#floating-menu {
-    position: absolute;
-    top: 40px;
-    right: 40px;
-    width: 180px;
-    height: 240px;
-    background-color: var(--day-wood);
-    border: 4px solid var(--day-metal);
-    pointer-events: auto;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #F6E4C1;
-    font-family: 'Cinzel Decorative', cursive;
-    transition: all 0.7s cubic-bezier(0.25, 0.1, 0.25, 1);
-    /* Module 8.5 */
-    transform-style: preserve-3d;
-    box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-#floating-menu:hover {
-    transform: rotateY(-10deg) scale(1.05);
-}
-
-/* Open State */
-#floating-menu.open {
-    top: 15vh;
-    right: 15vw;
-    width: 70vw;
-    /* Module 8.2 */
-    height: 70vh;
-    transform: rotateY(0deg);
-    z-index: 1000;
-    cursor: default;
-}
-
-#floating-menu .book-cover {
-    font-size: 2rem;
-    transition: opacity 0.3s;
-}
-
-#floating-menu.open .book-cover {
+    background: url('../assets/cowboy_silhouette.png') no-repeat center;
+    background-size: contain;
     opacity: 0;
-    /* Hide cover text on open */
+    z-index: 6;
+    transition: opacity 0.6s ease-out, transform 1s ease-out;
 }
 
-#layer-00-ui {
-    z-index: 11;
-    text-align: center;
-    position: relative;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
+/* Night mode Cowboy rim light */
+body.night-mode #cowboySilhouette {
+    filter: drop-shadow(0 0 20px rgba(255, 182, 73, 0.4));
 }
 
-#hero-content {
+/* Cowboy visible state (JS will toggle class on scroll-up) */
+#cowboySilhouette.active {
+    opacity: 1;
+    transform: translateX(120vw);
+}
+
+/* =========================================================
+   HERO TEXT OVERLAY
+   ========================================================= */
+
+#heroTextContainer {
     position: absolute;
-    top: 50%;
+    bottom: 20%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 8;
     opacity: 0;
-    /* Hidden initially for Module 7 */
-    transition: opacity 1s ease;
+    transition: opacity 1s ease-in-out;
 }
 
-.cta-button {
-    margin-top: 2rem;
-    padding: 1rem 2rem;
-    background-color: var(--day-accent);
+#heroTextContainer.visible {
+    opacity: 1;
+}
+
+.hero-title {
+    font-family: "Cinzel Decorative", serif;
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--hero-text-main);
+    text-shadow: 0 4px 6px rgba(0,0,0,0.35);
+    transition: color var(--hero-transition-speed);
+}
+
+body.night-mode .hero-title {
+    color: var(--hero-text-night);
+}
+
+.hero-subtitle {
+    font-family: "Playfair Display", serif;
+    font-size: 1.8rem;
+    margin-top: 10px;
+    color: var(--hero-text-main);
+    transition: color var(--hero-transition-speed);
+}
+
+body.night-mode .hero-subtitle {
+    color: var(--hero-text-night);
+}
+
+/* CTA Buttons container */
+.hero-cta {
+    margin-top: 20px;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+/* CTA BUTTONS (base) */
+.cta-btn {
+    padding: 12px 30px;
     border: none;
+    font-family: "Inter", sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 6px;
+    background: #8A6B45;
     color: white;
-    font-size: 1.2rem;
-    cursor: pointer;
-    pointer-events: auto;
-    transition: background-color 0.3s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
 }
 
-.cta-button:hover {
-    background-color: #A35E20;
+/* Hover effect */
+.cta-btn:hover {
+    transform: scale(1.05);
+    background: #A88355;
 }
 
-#night-mode-toggle {
+/* =========================================================
+   SCROLL INDICATOR ANIMATION
+   ========================================================= */
+
+#scrollIndicator {
     position: absolute;
-    bottom: 30px;
-    left: 30px;
-    font-size: 2rem;
-    cursor: pointer;
-    pointer-events: auto;
-    transition: transform 0.3s;
-    z-index: 100;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 48px;
+    border: 2px solid rgba(255,255,255,0.7);
+    border-radius: 20px;
+    z-index: 10;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    overflow: hidden;
 }
 
-#night-mode-toggle:hover {
-    transform: scale(1.1);
+#scrollIndicator::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 50%;
+    animation: scrollDrop 1.4s infinite ease-in-out;
 }
 
-#audio-toggle {
-    position: absolute;
-    bottom: 30px;
-    left: 80px;
-    font-size: 2rem;
-    cursor: pointer;
-    pointer-events: auto;
-    transition: transform 0.3s;
-    z-index: 100;
+@keyframes scrollDrop {
+    0% { transform: translateY(8px); opacity: 1; }
+    70% { transform: translateY(28px); opacity: 0; }
+    100% { opacity: 0; }
 }
 
-#audio-toggle:hover {
-    transform: scale(1.1);
+/* Night mode color adjustments for scroll indicator */
+body.night-mode #scrollIndicator {
+    border-color: rgba(255,182,73,0.8);
+}
+
+body.night-mode #scrollIndicator::after {
+    background: rgba(255,182,73,0.9);
+}
+
+/* =========================================================
+   RESPONSIVE HERO ADJUSTMENTS
+   ========================================================= */
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.4rem;
+    }
+    .hero-subtitle {
+        font-size: 1.2rem;
+    }
+    #cowboySilhouette {
+        width: 180px;
+        height: 180px;
+    }
 }
