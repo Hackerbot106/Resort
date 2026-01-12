@@ -1,186 +1,284 @@
-/**
- * Module 4 & 5: Visuals System (Cursor & Dust)
- */
-const visualsManager = {
-    canvas: null,
-    ctx: null,
-    width: 0,
-    height: 0,
-    particles: [],
+/* =========================================================
+   VISUAL ENGINE — visual.js
+   Handles all non-logical visual/graphical effects:
+   - Cursor lasso trail
+   - Dust particles
+   - Fire glow flicker
+   - Subtle parallax smoothing
+   - Rim lights, depth shadows
+   - Hover depth effects
+   - Map animation
+   - 3D cabin rotation
+   - Activity carousel inertia
+   ========================================================= */
 
-    // Cursor State
-    cursor: {
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-        lastX: 0,
-        lastY: 0,
-        down: false
-    },
 
-    // Rope Simulation Props
-    rope: {
-        points: [],
-        segments: 12,
-        damp: 0.4,
-        stiffness: 0.2
-    },
+/* ---------------------------------------------------------
+   CURSOR LASSO TRAIL EFFECT
+   --------------------------------------------------------- */
 
-    init: () => {
-        console.log("Visuals System Initializing...");
+const cursor = { x: 0, y: 0 };
+const ropeSegments = [];
+const maxSegments = 12;
 
-        visualsManager.canvas = document.getElementById('dust-canvas');
-        visualsManager.ctx = visualsManager.canvas.getContext('2d');
-        visualsManager.cursorEl = document.getElementById('cursor-container');
+document.addEventListener("mousemove", (e) => {
+    cursor.x = e.clientX;
+    cursor.y = e.clientY;
 
-        window.addEventListener('resize', visualsManager.resize);
-        visualsManager.resize();
+    ropeSegments.unshift({ x: cursor.x, y: cursor.y });
+    if (ropeSegments.length > maxSegments) ropeSegments.pop();
+});
 
-        // Input Listeners
-        window.addEventListener('mousemove', visualsManager.handleMouseMove);
-        window.addEventListener('mousedown', () => { visualsManager.cursor.down = true; visualsManager.spawnBurst(); });
-        window.addEventListener('mouseup', () => { visualsManager.cursor.down = false; });
+function drawLassoTrail() {
+    const canvas = document.getElementById("lassoCanvas");
+    if (!canvas) return;
 
-        // Init Rope Points
-        for (let i = 0; i < visualsManager.rope.segments; i++) {
-            visualsManager.rope.points.push({ x: 0, y: 0 });
-        }
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-        // Start Loop
-        requestAnimationFrame(visualsManager.loop);
-    },
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    resize: () => {
-        visualsManager.width = window.innerWidth;
-        visualsManager.height = window.innerHeight;
-        visualsManager.canvas.width = visualsManager.width;
-        visualsManager.canvas.height = visualsManager.height;
-    },
+    ctx.strokeStyle = "rgba(148, 106, 62, 0.8)";
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
 
-    handleMouseMove: (e) => {
-        visualsManager.cursor.x = e.clientX;
-        visualsManager.cursor.y = e.clientY;
+    ctx.beginPath();
+    ropeSegments.forEach((seg, i) => {
+        if (i === 0) ctx.moveTo(seg.x, seg.y);
+        else ctx.lineTo(seg.x, seg.y);
+    });
 
-        // Calculate velocity for dust spawn
-        visualsManager.cursor.vx = e.clientX - visualsManager.cursor.lastX;
-        visualsManager.cursor.vy = e.clientY - visualsManager.cursor.lastY;
+    ctx.stroke();
 
-        visualsManager.cursor.lastX = e.clientX;
-        visualsManager.cursor.lastY = e.clientY;
+    requestAnimationFrame(drawLassoTrail);
+}
 
-        // Module 5.2: Spawn when cursor moves fast
-        const speed = Math.sqrt(visualsManager.cursor.vx ** 2 + visualsManager.cursor.vy ** 2);
-        if (speed > 15) { // Threshold
-            visualsManager.spawnDust(visualsManager.cursor.x, visualsManager.cursor.y, 1);
-        }
-    },
+requestAnimationFrame(drawLassoTrail);
 
-    spawnDust: (x, y, count = 1) => {
-        const isNight = document.body.classList.contains('night-mode');
-        // Colors: Day #C99A6A, Night #C49B66
-        const color = isNight ? '255, 178, 94' : '201, 154, 106';
 
-        for (let i = 0; i < count; i++) {
-            if (visualsManager.particles.length >= 50) visualsManager.particles.shift(); // Max 50 limit
+/* ---------------------------------------------------------
+   DUST PARTICLE SYSTEM (VISUAL ONLY)
+   --------------------------------------------------------- */
 
-            visualsManager.particles.push({
-                x: x + (Math.random() - 0.5) * 20,
-                y: y + (Math.random() - 0.5) * 20,
-                vx: (Math.random() - 0.5) * 2,
-                vy: (Math.random() - 0.5) * 2,
-                size: Math.random() * 4 + 2, // 2px-6px
-                life: 1.0,
-                decay: Math.random() * 0.01 + 0.015, // Lifespan 700-1300ms approx
-                color: color
-            });
-        }
-    },
+const dustCanvas = document.getElementById("dustCanvas");
+const dustCtx = dustCanvas ? dustCanvas.getContext("2d") : null;
 
-    spawnBurst: () => {
-        visualsManager.spawnDust(visualsManager.cursor.x, visualsManager.cursor.y, 8);
-    },
+let dustParticles = [];
 
-    updateRope: () => {
-        // Simple Inverse Kinematics / Follow logic
-        let head = visualsManager.rope.points[0];
-        head.x = visualsManager.cursor.x;
-        head.y = visualsManager.cursor.y;
-
-        for (let i = 1; i < visualsManager.rope.segments; i++) {
-            let p = visualsManager.rope.points[i];
-            let prev = visualsManager.rope.points[i - 1];
-
-            // Spring/Follow logic
-            let dx = prev.x - p.x;
-            let dy = prev.y - p.y;
-
-            p.x += dx * visualsManager.rope.damp;
-            p.y += dy * visualsManager.rope.damp;
-
-            // Add some "Lasso" oscillation if active
-            if (visualsManager.cursor.down) {
-                p.x += Math.sin(Date.now() * 0.01 + i) * 2;
-            }
-        }
-    },
-
-    drawRope: () => {
-        const ctx = visualsManager.ctx;
-        ctx.beginPath();
-        // Rope Color: #C49B66
-        ctx.strokeStyle = '#C49B66';
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-
-        if (visualsManager.rope.points.length > 0) {
-            ctx.moveTo(visualsManager.rope.points[0].x, visualsManager.rope.points[0].y);
-            for (let i = 1; i < visualsManager.rope.points.length; i++) {
-                // Smooth curve
-                const p = visualsManager.rope.points[i];
-                ctx.lineTo(p.x, p.y);
-            }
-        }
-        ctx.stroke();
-    },
-
-    loop: () => {
-        const ctx = visualsManager.ctx;
-        ctx.clearRect(0, 0, visualsManager.width, visualsManager.height);
-
-        // Update Rope
-        visualsManager.updateRope();
-        visualsManager.drawRope();
-
-        // Update Particles
-        for (let i = visualsManager.particles.length - 1; i >= 0; i--) {
-            let p = visualsManager.particles[i];
-
-            p.x += p.vx;
-            p.y += p.vy;
-            p.life -= p.decay;
-
-            if (p.life <= 0) {
-                visualsManager.particles.splice(i, 1);
-                continue;
-            }
-
-            ctx.beginPath();
-            // Module 5.3: Glow for night mode
-            const isNight = document.body.classList.contains('night-mode');
-
-            if (isNight) {
-                ctx.shadowBlur = 5;
-                ctx.shadowColor = `rgba(${p.color}, 0.4)`;
-            } else {
-                ctx.shadowBlur = 0;
-            }
-
-            ctx.fillStyle = `rgba(${p.color}, ${p.life})`;
-            ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        requestAnimationFrame(visualsManager.loop);
+function spawnDust(x, y, glow = false) {
+    for (let i = 0; i < 5; i++) {
+        dustParticles.push({
+            x: x,
+            y: y,
+            vx: (Math.random() - 0.5) * 2,
+            vy: -Math.random() * 2,
+            size: Math.random() * 4 + 2,
+            opacity: 1,
+            glow: glow
+        });
     }
-};
+}
+
+document.addEventListener("mousemove", (e) => {
+    if (Math.random() > 0.7) {
+        const glow = document.body.classList.contains("night-mode");
+        spawnDust(e.clientX, e.clientY, glow);
+    }
+});
+
+function updateDust() {
+    if (!dustCanvas) return;
+
+    dustCanvas.width = window.innerWidth;
+    dustCanvas.height = window.innerHeight;
+
+    dustCtx.clearRect(0, 0, dustCanvas.width, dustCanvas.height);
+
+    dustParticles.forEach((p, index) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.opacity -= 0.02;
+
+        if (p.opacity <= 0) {
+            dustParticles.splice(index, 1);
+        }
+
+        dustCtx.globalAlpha = p.opacity;
+
+        if (p.glow) {
+            dustCtx.fillStyle = "rgba(255, 200, 120, 0.9)";
+            dustCtx.shadowBlur = 12;
+            dustCtx.shadowColor = "rgba(255, 180, 90, 0.9)";
+        } else {
+            dustCtx.fillStyle = "rgba(200, 160, 120, 0.8)";
+            dustCtx.shadowBlur = 0;
+        }
+
+        dustCtx.beginPath();
+        dustCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        dustCtx.fill();
+    });
+
+    requestAnimationFrame(updateDust);
+}
+
+requestAnimationFrame(updateDust);
+
+
+/* ---------------------------------------------------------
+   FIRE GLOW FLICKER — NIGHT MODE ONLY
+   --------------------------------------------------------- */
+
+let glowIntensity = 0;
+
+function updateFireGlow() {
+    if (!document.body.classList.contains("night-mode")) {
+        requestAnimationFrame(updateFireGlow);
+        return;
+    }
+
+    glowIntensity = 0.2 + Math.random() * 0.3;
+
+    document.documentElement.style.setProperty(
+        "--fire-glow",
+        `rgba(255, 180, 90, ${glowIntensity})`
+    );
+
+    requestAnimationFrame(updateFireGlow);
+}
+
+requestAnimationFrame(updateFireGlow);
+
+
+/* ---------------------------------------------------------
+   HERO PARALLAX SMOOTHING (reduces jitter)
+   --------------------------------------------------------- */
+
+let parallaxX = 0;
+let parallaxY = 0;
+let targetX = 0;
+let targetY = 0;
+
+document.addEventListener("mousemove", (e) => {
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+
+    targetX = (e.clientX - centerX) * -0.01;
+    targetY = (e.clientY - centerY) * -0.015;
+});
+
+function smoothParallax() {
+    parallaxX += (targetX - parallaxX) * 0.1;
+    parallaxY += (targetY - parallaxY) * 0.1;
+
+    document.getElementById("heroLodge").style.transform =
+        `translate(${parallaxX}px, ${parallaxY}px)`;
+
+    requestAnimationFrame(smoothParallax);
+}
+
+requestAnimationFrame(smoothParallax);
+
+
+/* ---------------------------------------------------------
+   RIM LIGHT ON COWBOY (night mode enhancement)
+   --------------------------------------------------------- */
+
+function updateCowboyRim() {
+    if (!document.body.classList.contains("night-mode")) return;
+
+    cowboy.style.filter =
+        "drop-shadow(0 0 14px rgba(255, 200, 120, 0.4))";
+}
+
+setInterval(updateCowboyRim, 300);
+
+
+/* ---------------------------------------------------------
+   MAP LINE DRAWING EFFECT
+   --------------------------------------------------------- */
+
+function animateMapLine() {
+    const map = document.getElementById("animatedMap");
+    if (!map) return;
+
+    const line = document.createElement("div");
+    line.classList.add("map-line");
+    map.appendChild(line);
+
+    setTimeout(() => {
+        line.style.width = "100%";
+    }, 100);
+}
+
+window.addEventListener("DOMContentLoaded", animateMapLine);
+
+
+/* ---------------------------------------------------------
+   3D CABIN ROTATION PLACEHOLDER
+   --------------------------------------------------------- */
+
+const cabin = document.getElementById("cabin3DContainer");
+
+if (cabin) {
+    cabin.addEventListener("mousemove", (e) => {
+        const rect = cabin.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const rotY = (x / rect.width - 0.5) * 40;
+        const rotX = (y / rect.height - 0.5) * -40;
+
+        cabin.style.transform = `
+            rotateX(${rotX}deg)
+            rotateY(${rotY}deg)
+        `;
+    });
+
+    cabin.addEventListener("mouseleave", () => {
+        cabin.style.transform = "rotateX(0deg) rotateY(0deg)";
+    });
+}
+
+
+/* ---------------------------------------------------------
+   ACTIVITY CAROUSEL INERTIAL DRAG
+   --------------------------------------------------------- */
+
+const carousel = document.querySelector(".activity-carousel");
+if (carousel) {
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    carousel.addEventListener("mousedown", (e) => {
+        isDown = true;
+        startX = e.pageX - carousel.offsetLeft;
+        scrollLeft = carousel.scrollLeft;
+    });
+
+    carousel.addEventListener("mouseleave", () => {
+        isDown = false;
+    });
+
+    carousel.addEventListener("mouseup", () => {
+        isDown = false;
+    });
+
+    carousel.addEventListener("mousemove", (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - carousel.offsetLeft;
+        const walk = (x - startX) * 3;
+        carousel.scrollLeft = scrollLeft - walk;
+    });
+}
+
+
+/* ---------------------------------------------------------
+   EXPORTS
+   --------------------------------------------------------- */
+
+window.spawnDust = spawnDust;
+
