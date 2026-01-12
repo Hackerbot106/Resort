@@ -1,48 +1,257 @@
-/* Module 18: Mobile Adaptation */
-@media (max-width: 768px) {
-    /* 18.1 Rules */
+/* =========================================================
+   MOBILE OVERRIDES — FOR SCREENS BELOW 768px WIDTH
+   ========================================================= */
 
-    /* Remove cowboy silhouette */
-    #layer-03-cowboy {
+@media (max-width: 768px) {
+
+    /* ================================
+       GENERAL / GLOBAL ADJUSTMENTS
+       ================================ */
+    
+    body {
+        overflow-x: hidden;
+        touch-action: pan-y;
+    }
+
+    #hero {
+        height: 95vh;
+    }
+
+    /* Remove heavy parallax for performance */
+    .layer {
+        transform: none !important;
+        background-position: center !important;
+        background-size: cover !important;
+    }
+
+    /* ======================================
+       COWBOY SILHOUETTE — MOBILE REMOVAL
+       ====================================== */
+
+    #cowboySilhouette {
         display: none !important;
     }
 
-    /* Reduce dust count (Handled in JS logic but good to note) */
+    /* ======================================
+       HERO TEXT + CTA
+       ====================================== */
 
-    /* Simplify Parallax */
-    .parallax-layer {
-        transform: translateZ(0);
-        /* Flatten */
+    #heroTextContainer {
+        width: 90%;
+        bottom: 15%;
     }
 
-    /* Menu Opens Full Screen */
-    #floating-menu.open {
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+    .hero-title {
+        font-size: 2.2rem !important;
+        line-height: 2.6rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.2rem !important;
+    }
+
+    .hero-cta {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .cta-btn {
+        width: 80%;
+        margin: 0 auto;
+        padding: 12px 0;
+    }
+
+    /* ======================================
+       SCROLL INDICATOR
+       ====================================== */
+
+    #scrollIndicator {
+        bottom: 3%;
+        width: 24px;
+        height: 40px;
+    }
+
+    /* ======================================
+       FLOATING MENU (3D BOOK)
+       ====================================== */
+
+    #floatingMenu {
+        top: 20px !important;
+        right: 20px !important;
+        transform: scale(0.8);
+    }
+
+    /* Menu opens full-screen on mobile */
+    #floatingMenu.menu-open {
+        position: fixed;
+        width: 100vw !important;
+        height: 100vh !important;
+        top: 0 !important;
+        left: 0 !important;
+        transform: none !important;
+        z-index: 9999;
+    }
+
+    .menu-book {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+    }
+
+    /* Inside menu pages should scroll */
+    .menu-open .menu-book-inner {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Disable page curl animation on mobile */
+    .menu-page {
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Hide night mode toggle when menu is open */
+    #floatingMenu.menu-open ~ #nightToggleWrapper {
+        display: none !important;
+    }
+
+    /* ======================================
+       NIGHT MODE TOGGLE (CAMPFIRE ICON)
+       ====================================== */
+
+    #nightToggleWrapper {
+        bottom: 20px !important;
+        left: 20px !important;
+        transform: scale(0.9);
+    }
+
+    /* Campfire icon touch optimization */
+    #nightToggle {
+        width: 50px;
+        height: 50px;
+    }
+
+    /* ======================================
+       MATCHSTICK ANIMATION
+       ====================================== */
+
+    /* On mobile, simplify animation: fade + ignite only */
+    #matchstickAnimation {
+        position: fixed;
         width: 100vw;
         height: 100vh;
-        border: none;
+        top: 0;
+        left: 0;
+        pointer-events: none;
     }
 
-    /* Adjust Fonts */
-    h1 {
-        font-size: 2.5rem;
+    /* Matchstick travels without full border trace */
+    body.night-mode #matchstickAnimation {
+        animation: mobileNightFade 0.9s ease-out forwards;
     }
 
-    h2 {
-        font-size: 1.5rem;
+    @keyframes mobileNightFade {
+        0% { background-color: rgba(0,0,0,0); }
+        50% { background-color: rgba(0,0,0,0.3); }
+        100% { background-color: rgba(0,0,0,0); }
     }
 
-    /* Night mode toggle position fix */
-    #night-mode-toggle {
-        bottom: 20px;
-        left: 20px;
+    /* ======================================
+       SECTION 1 — EXPERIENCE
+       ====================================== */
+
+    #experienceSection .section-inner {
+        width: 90%;
+        margin: auto;
+        text-align: center;
+        padding: 40px 0;
     }
 
-    #audio-toggle {
-        bottom: 20px;
-        left: 70px;
+    #experienceSection .section-title {
+        font-size: 1.8rem;
     }
+
+    #experienceSection .section-text {
+        font-size: 1rem;
+        line-height: 1.5rem;
+    }
+
+    /* ======================================
+       SECTION 2 — FOOD SHOWCASE
+       ====================================== */
+
+    .food-showcase {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .food-card {
+        width: 100%;
+        height: 180px;
+    }
+
+    /* ======================================
+       SECTION 3 — ACTIVITIES (CAROUSEL)
+       ====================================== */
+
+    .activity-carousel {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        scroll-snap-type: x mandatory;
+        gap: 16px;
+        padding: 20px;
+    }
+
+    .activity-card {
+        min-width: 70%;
+        font-size: 1.2rem;
+        scroll-snap-align: center;
+        padding: 20px;
+    }
+
+    /* ======================================
+       SECTION 4 — CABINS
+       ====================================== */
+
+    #cabinsSection {
+        text-align: center;
+        padding: 40px 0;
+    }
+
+    #cabin3DContainer {
+        width: 100%;
+        height: 260px;
+        margin-top: 20px;
+    }
+
+    /* ======================================
+       SECTION 5 — MAP
+       ====================================== */
+
+    #mapSection {
+        padding: 40px 0;
+    }
+
+    #animatedMap {
+        width: 100%;
+        height: 300px;
+    }
+
+    /* ======================================
+       FOOTER
+       ====================================== */
+
+    #footer {
+        padding: 30px 0;
+        text-align: center;
+    }
+
+    .footer-links {
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 20px;
+    }
+
 }
